@@ -59,15 +59,10 @@ public:
 
     void AddDocument(int document_id, const string& document) {
         const vector<string> words = SplitIntoWordsNoStop(document);
-        for (const string& i : words){
-            auto itr = word_to_document_freqs_.find(i);
-            if (itr == word_to_document_freqs_.end()) {
-                word_to_document_freqs_[i] = {};
-            }
-            if (word_to_document_freqs_[i].find(document_id) != word_to_document_freqs_[i].end()){
-                word_to_document_freqs_[i][document_id] += 1.0/words.size();
-            }
-            else word_to_document_freqs_[i][document_id] = 1.0/words.size();
+        double reciprocal_size = 1.0/words.size();
+        for (const string& word : words){
+            auto itr = word_to_document_freqs_.find(word);
+            word_to_document_freqs_[word][document_id] += reciprocal_size;
         }
         document_count_++;
     }
@@ -107,6 +102,10 @@ private:
         return words;
     }
 
+    const double CalculateIDF(map<int, double>& id_relevance) const{
+        return log(1.0*document_count_/static_cast<int>(id_relevance.size()));
+    }
+
     set<string> ParseQuery(const string& text) const {
         set<string> query_words;
         for (const string& word : SplitIntoWordsNoStop(text)) {
@@ -133,7 +132,7 @@ private:
         for (const auto& i : query_words){
             if (word_to_document_freqs_.find(i) != word_to_document_freqs_.end()) {
                 map<int, double> id_relevance = word_to_document_freqs_.find(i)->second;
-                double idf = log(1.0*document_count_/id_relevance.size());
+                const double idf = CalculateIDF(id_relevance);
                 for (auto j : id_relevance) {
                     double tf_idf = j.second * idf;
                     if (documents.find(j.first) != documents.end()){
