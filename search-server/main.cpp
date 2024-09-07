@@ -103,7 +103,6 @@ private:
     }
 
     const double CalculateIDF(const string& word) const{
-        //return log(1.0*document_count_/static_cast<int>(id_relevance.size()));
         map<int, double> id_relevance = word_to_document_freqs_.find(word)->second;
         return log(1.0*document_count_/static_cast<int>(id_relevance.size()));
 
