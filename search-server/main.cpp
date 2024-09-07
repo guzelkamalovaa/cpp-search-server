@@ -102,8 +102,12 @@ private:
         return words;
     }
 
-    const double CalculateIDF(map<int, double>& id_relevance) const{
+    const double CalculateIDF(const string& word) const{
+        //return log(1.0*document_count_/static_cast<int>(id_relevance.size()));
+        map<int, double> id_relevance = word_to_document_freqs_.find(word)->second;
         return log(1.0*document_count_/static_cast<int>(id_relevance.size()));
+
+
     }
 
     set<string> ParseQuery(const string& text) const {
@@ -129,17 +133,17 @@ private:
     vector<Document> FindAllDocuments(const set<string>& query_words, const set<string>& minus_words) const {
         vector<Document> matched_documents;
         map<int, double> documents;
-        for (const auto& i : query_words){
-            if (word_to_document_freqs_.find(i) != word_to_document_freqs_.end()) {
-                map<int, double> id_relevance = word_to_document_freqs_.find(i)->second;
-                const double idf = CalculateIDF(id_relevance);
-                for (auto j : id_relevance) {
-                    double tf_idf = j.second * idf;
-                    if (documents.find(j.first) != documents.end()){
-                        documents[j.first] += tf_idf;
+        for (const auto& word : query_words){
+            if (word_to_document_freqs_.find(word) != word_to_document_freqs_.end()) {
+                map<int, double> id_relevance = word_to_document_freqs_.find(word)->second;
+                const double idf = CalculateIDF(word);
+                for (auto document : id_relevance) {
+                    double tf_idf = document.second * idf;
+                    if (documents.find(document.first) != documents.end()){
+                        documents[document.first] += tf_idf;
                     }
                     else {
-                        documents.insert({j.first, tf_idf});
+                        documents.insert({document.first, tf_idf});
                     }
                 }
             }
