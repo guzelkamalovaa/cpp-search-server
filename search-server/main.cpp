@@ -84,20 +84,7 @@ class SearchServer {
                                     const FilterFunction& filt_func) const {
     const Query query = ParseQuery(raw_query);
 
-    auto matched_documents = FindAllDocuments(query);
-
-    auto iter = matched_documents.begin();
-
-    Document filt_check = *iter;
-    while (iter != matched_documents.end()) {
-      filt_check = *iter;
-      if (filt_func(filt_check.id, documents_.at(filt_check.id).status,
-                    filt_check.rating)) {
-        iter++;
-      } else {
-        matched_documents.erase(iter);
-      }
-    }
+    auto matched_documents = FindAllDocuments(query, filt_func);
 
     sort(matched_documents.begin(), matched_documents.end(),
          [](const Document& lhs, const Document& rhs) {
@@ -115,18 +102,10 @@ class SearchServer {
   }
 
   vector<Document> FindTopDocuments(const string& raw_query,
-                                    DocumentStatus status) const {
+                                    DocumentStatus status = DocumentStatus::ACTUAL) const {
     return FindTopDocuments(
         raw_query, [status](int document_id, DocumentStatus doc_status,
                             int rating) { return doc_status == status; });
-  }
-
-  vector<Document> FindTopDocuments(const string& raw_query) const {
-    return FindTopDocuments(
-        raw_query,
-        [](int document_id, DocumentStatus document_status, int rating) {
-          return document_status == DocumentStatus::ACTUAL;
-        });
   }
 
   tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query,
@@ -225,7 +204,9 @@ class SearchServer {
     return query;
   }
 
-  vector<Document> FindAllDocuments(const Query& query) const {
+  template <typename FilterFunction>
+  vector<Document> FindAllDocuments(const Query& query, FilterFunction& filt_func) const {
+
     map<int, double> document_to_relevance;
     for (const string& word : query.plus_words) {
       if (word_to_document_freqs_.count(word) == 0) {
@@ -249,8 +230,11 @@ class SearchServer {
 
     vector<Document> matched_documents;
     for (const auto& [document_id, relevance] : document_to_relevance) {
+      if (filt_func(document_id, documents_.at(document_id).status,
+                    documents_.at(document_id).rating)) {
       matched_documents.push_back(
           {document_id, relevance, documents_.at(document_id).rating});
+    }
     }
     return matched_documents;
   }
