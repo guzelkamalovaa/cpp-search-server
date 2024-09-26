@@ -262,9 +262,6 @@ private:
         Query result = {};
         for (const string& word : SplitIntoWords(text)) {
             QueryWord query_word = ParseQueryWord(word);
-            // if (!ParseQueryWord(word, query_word)) {
-            //     throw invalid_argument("Invalid argument");
-            // }
             if (!query_word.is_stop) {
                 if (query_word.is_minus) {
                     result.minus_words.insert(query_word.data);
