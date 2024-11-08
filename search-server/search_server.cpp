@@ -12,6 +12,14 @@ SearchServer::SearchServer(const std::string& stop_words_text)
     : SearchServer(SplitIntoWords(stop_words_text)) {
 }
 
+template <typename StringContainer>
+SearchServer::SearchServer(const StringContainer& stop_words)
+    : stop_words_(stop_words.begin(), stop_words.end()) {
+    if (!std::all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
+        throw std::invalid_argument("Some of stop words are invalid");
+    }
+}
+
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
                                const std::vector<int>& ratings) {
     if ((document_id < 0) || (documents_.count(document_id) > 0)) {
