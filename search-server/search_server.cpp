@@ -12,13 +12,7 @@ SearchServer::SearchServer(const std::string& stop_words_text)
     : SearchServer(SplitIntoWords(stop_words_text)) {
 }
 
-template <typename StringContainer>
-SearchServer::SearchServer(const StringContainer& stop_words)
-    : stop_words_(stop_words.begin(), stop_words.end()) {
-    if (!std::all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
-        throw std::invalid_argument("Some of stop words are invalid");
-    }
-}
+
 
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
                                const std::vector<int>& ratings) {
@@ -35,14 +29,14 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     document_ids_.push_back(document_id);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query, DocumentStatus status){
     return FindTopDocuments(
         raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
             return document_status == status;
         });
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query) const {
+std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query){
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 
